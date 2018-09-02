@@ -4,3 +4,12 @@ version = "0.1.0"
 authors = ["ian"]
 
 [dependencies]
+unicode-segmentation = "1.2.1"
+
+[lib]
+name = "libheadugh"
+path = "src/lib.rs"
+
+[[bin]]
+name = "headugh"
+path = "src/main.rs"
