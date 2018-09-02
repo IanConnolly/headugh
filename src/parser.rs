@@ -7,6 +7,12 @@ use std::fmt;
 #[derive(Debug)]
 pub struct InstructionList(Vec<Instruction>);
 
+impl InstructionList {
+    pub fn as_vec(&self) -> &Vec<Instruction> {
+        &self.0
+    }
+}
+
 impl fmt::Display for InstructionList {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mapped: Vec<String> = self.0.iter().map(|x| x.to_string()).collect();

@@ -1,3 +1,4 @@
+use instruction::Instruction;
 use parser::InstructionList;
 use std::fmt;
 use std::io::{Read, Write};
@@ -6,7 +7,7 @@ const MEM_SIZE: usize = 256;
 
 pub struct Interpreter {
     instructions: InstructionList,
-    pc: u64,
+    pc: usize,
     ap: i64,     // logical address pointer, will have negatives
     max_ap: i64, // actual max address pointer reached, can compare
     memory: [u8; MEM_SIZE],
@@ -38,6 +39,24 @@ impl Interpreter {
             instructions: ins,
             input: input,
             output: output,
+        }
+    }
+
+    pub fn execute(&mut self) -> () {
+        let instructions = self.instructions.as_vec();
+        while self.pc < instructions.len() {
+            let current_symbol = instructions[self.pc];
+            // TODO
+            match current_symbol {
+                Instruction::MoveRight => (),
+                Instruction::MoveLeft => (),
+                Instruction::Increment => (),
+                Instruction::Decrement => (),
+                Instruction::Write => (),
+                Instruction::Read => (),
+                Instruction::JumpIfZero => (),
+                Instruction::JumpUnlessZero => (),
+            }
         }
     }
 }
