@@ -14,11 +14,11 @@ pub fn run(filename: &str) -> std::io::Result<()> {
     let contents = contents;
     let program = parser::parse(&contents).unwrap();
     let mut interpreter = Interpreter::new(
-        program,
+        program.clone(),
         Box::new(std::io::stdin()),
         Box::new(std::io::stdout()),
     );
-    interpreter.execute();
-    println!("{:?}", interpreter);
+    interpreter.execute().unwrap();
+    println!("{}", program);
     Ok(())
 }

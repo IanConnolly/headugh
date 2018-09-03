@@ -4,7 +4,7 @@ use instruction;
 use instruction::Instruction;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct InstructionList(Vec<Instruction>);
 
 impl InstructionList {
