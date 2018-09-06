@@ -19,6 +19,5 @@ pub fn run(filename: &str) -> std::io::Result<()> {
         Box::new(std::io::stdout()),
     );
     interpreter.execute().unwrap();
-    println!("{}", program);
     Ok(())
 }

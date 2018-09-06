@@ -74,7 +74,7 @@ impl Interpreter {
 
     fn write_out_buffer(&mut self) -> () {
         if self.output_buffer.len() > 0 {
-            self.output.write(&self.output_buffer[..]).unwrap();
+            self.output.write(&self.output_buffer[0..]).unwrap();
             self.output.flush().unwrap();
             self.output_buffer.clear();
         }
@@ -134,10 +134,61 @@ impl Interpreter {
                 Instruction::JumpIfZero => {
                     let address = self.concrete_address()?;
                     let byte = self.memory[address];
-                    self.pc = if byte == 0 { self.pc + 1 } else { self.pc + 1 }
+                    self.pc = if byte == 0 {
+                        let mut shadow_pc = self.pc;
+                        let mut stack_counter = 1;
+                        while shadow_pc < self.instructions.as_vec().len() && stack_counter > 0 {
+                            shadow_pc += 1;
+                            let shadow_symbol = self.instructions.as_vec()[shadow_pc];
+                            let stack_modifier = match shadow_symbol {
+                                Instruction::JumpIfZero => 1,
+                                Instruction::JumpUnlessZero => -1,
+                                _ => 0,
+                            };
+                            stack_counter += stack_modifier;
+                        }
+
+                        if stack_counter == 0 {
+                            shadow_pc
+                        } else if stack_counter > 0 {
+                            panic!("did not find matching ]")
+                        } else {
+                            panic!("ICE: right lookahead resulted in negative stack")
+                        }
+                    } else {
+                        self.pc + 1
+                    }
                 }
                 Instruction::JumpUnlessZero => {
-                    self.pc += 1;
+                    let address = self.concrete_address()?;
+                    let byte = self.memory[address];
+                    self.pc = if byte == 0 {
+                        self.pc + 1
+                    } else {
+                        let mut shadow_pc = self.pc;
+                        let mut stack_counter = 1;
+                        while stack_counter > 0 {
+                            shadow_pc -= 1;
+                            let shadow_symbol = self.instructions.as_vec()[shadow_pc];
+                            let stack_modifier = match shadow_symbol {
+                                Instruction::JumpIfZero => -1,
+                                Instruction::JumpUnlessZero => 1,
+                                _ => 0,
+                            };
+                            stack_counter += stack_modifier;
+                            if shadow_pc == 0 {
+                                break;
+                            }
+                        }
+
+                        if stack_counter == 0 {
+                            shadow_pc
+                        } else if stack_counter > 0 {
+                            panic!("did not find matching [")
+                        } else {
+                            panic!("ICE: left lookbehind resulted in negative stack")
+                        }
+                    }
                 }
             }
         }
