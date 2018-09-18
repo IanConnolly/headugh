@@ -96,8 +96,8 @@ impl<'a> Interpreter<'a> {
     }
 
     pub fn execute(&mut self) -> Result<(), &'static str> {
-        while self.pc < self.instructions.as_vec().len() {
-            let current_symbol = self.instructions.as_vec()[self.pc];
+        while self.pc < self.instructions.len() {
+            let current_symbol = self.instructions[self.pc];
             match current_symbol {
                 // delay throwing OOM until OOM access occurs
                 Instruction::MoveRight => {
@@ -141,9 +141,9 @@ impl<'a> Interpreter<'a> {
                     self.pc = if byte == 0 {
                         let mut shadow_pc = self.pc;
                         let mut stack_counter = 1;
-                        while shadow_pc < self.instructions.as_vec().len() && stack_counter > 0 {
+                        while shadow_pc < self.instructions.len() && stack_counter > 0 {
                             shadow_pc += 1;
-                            let shadow_symbol = self.instructions.as_vec()[shadow_pc];
+                            let shadow_symbol = self.instructions[shadow_pc];
                             let stack_modifier = match shadow_symbol {
                                 Instruction::JumpIfZero => 1,
                                 Instruction::JumpUnlessZero => -1,
@@ -173,7 +173,7 @@ impl<'a> Interpreter<'a> {
                         let mut stack_counter = 1;
                         while stack_counter > 0 {
                             shadow_pc -= 1;
-                            let shadow_symbol = self.instructions.as_vec()[shadow_pc];
+                            let shadow_symbol = self.instructions[shadow_pc];
                             let stack_modifier = match shadow_symbol {
                                 Instruction::JumpIfZero => -1,
                                 Instruction::JumpUnlessZero => 1,

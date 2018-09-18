@@ -4,11 +4,15 @@ use instruction;
 use instruction::Instruction;
 use std::fmt;
 
+use std::ops::Deref;
+
 #[derive(Debug, Clone)]
 pub struct InstructionList(Vec<Instruction>);
 
-impl InstructionList {
-    pub fn as_vec(&self) -> &Vec<Instruction> {
+impl Deref for InstructionList {
+    type Target = Vec<Instruction>;
+
+    fn deref(&self) -> &Vec<Instruction> {
         &self.0
     }
 }
