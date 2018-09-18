@@ -1,6 +1,9 @@
 extern crate libheadugh;
 
+use std::fs::File;
 use std::io::Read;
+use std::path::PathBuf;
+use std::str;
 
 struct StubRead;
 
@@ -10,11 +13,31 @@ impl Read for StubRead {
     }
 }
 
+fn load_program(name: &str) -> String {
+    let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    d.push(format!("testdata/{}.bf", name));
+    let mut file = File::open(&d).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    contents.to_owned()
+}
+
 #[test]
 fn test_exclamation_mark() {
-    let input = "+++++++++++++++++++++++++++++++++.";
+    let program = load_program("exclamation");
+    let mut output = Vec::new();
+    let mut input = StubRead {};
+    libheadugh::execute(&program, &mut input, &mut output).unwrap();
+
+    assert_eq!(str::from_utf8(&output).unwrap(), "!");
+}
+
+#[test]
+fn test_wikipedia_hello_world() {
+    let program = load_program("wiki");
     let mut output = Vec::new();
     let mut input_handle = StubRead {};
-    libheadugh::execute(input, &mut input_handle, &mut output).unwrap();
-    assert_eq!(output[0], 33);
+    libheadugh::execute(&program, &mut input_handle, &mut output).unwrap();
+
+    assert_eq!(str::from_utf8(&output).unwrap(), "Hello World!\n");
 }
