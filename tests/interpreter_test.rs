@@ -15,7 +15,7 @@ impl Read for StubRead {
 
 fn load_program(name: &str) -> String {
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    d.push(format!("testdata/{}.bf", name));
+    d.push(format!("tests/programs/{}.bf", name));
     let mut file = File::open(&d).unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
