@@ -7,18 +7,18 @@ use std::io::{Read, Write};
 const MEM_SIZE: usize = 256;
 const BUFFER_SIZE: usize = 256;
 
-pub struct Interpreter {
+pub struct Interpreter<'a> {
     instructions: InstructionList,
     pc: usize,
     ap: isize,     // logical address pointer, will have negatives
     max_ap: isize, // actual max address pointer reached, can compare
     memory: [u8; MEM_SIZE],
-    input: Box<Read>,
-    output: Box<Write>,
+    input: &'a mut Read,
+    output: &'a mut Write,
     output_buffer: Vec<u8>,
 }
 
-impl fmt::Debug for Interpreter {
+impl<'a> fmt::Debug for Interpreter<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -32,8 +32,12 @@ impl fmt::Debug for Interpreter {
     }
 }
 
-impl Interpreter {
-    pub fn new(ins: InstructionList, input: Box<Read>, output: Box<Write>) -> Interpreter {
+impl<'a> Interpreter<'a> {
+    pub fn new(
+        ins: InstructionList,
+        input: &'a mut Read,
+        output: &'a mut Write,
+    ) -> Interpreter<'a> {
         Interpreter {
             pc: 0,
             ap: 0,

@@ -12,12 +12,14 @@ pub fn run(filename: &str) -> std::io::Result<()> {
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     let contents = contents;
-    let program = parser::parse(&contents).unwrap();
-    let mut interpreter = Interpreter::new(
-        program.clone(),
-        Box::new(std::io::stdin()),
-        Box::new(std::io::stdout()),
-    );
+    let mut stdin = std::io::stdin();
+    let mut stdout = std::io::stdout();
+    execute(&contents, &mut stdin, &mut stdout)
+}
+
+pub fn execute(program: &str, input: &mut Read, output: &mut Write) -> std::io::Result<()> {
+    let program = parser::parse(&program).unwrap();
+    let mut interpreter = Interpreter::new(program, input, output);
     interpreter.execute().unwrap();
     Ok(())
 }
