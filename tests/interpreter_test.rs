@@ -13,10 +13,15 @@ impl Read for StubRead {
     }
 }
 
-fn load_program(name: &str) -> String {
+fn filename_for(name: &str) -> PathBuf {
     let mut d = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     d.push(format!("tests/programs/{}.bf", name));
-    let mut file = File::open(&d).unwrap();
+    d
+}
+
+fn load_program(name: &str) -> String {
+    let filename = filename_for(name);
+    let mut file = File::open(&filename).unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     contents.to_owned()
@@ -50,4 +55,51 @@ fn test_rot13_io() {
     libheadugh::execute(&program, &mut input.as_ref(), &mut output).unwrap();
 
     assert_eq!(str::from_utf8(&output).unwrap(), "~zyx mlk");
+}
+
+#[test]
+fn test_obscure_issue_h() {
+    let program = load_program("obscure_issue_h");
+    let mut output = Vec::new();
+    let mut input = StubRead {};
+    libheadugh::execute(&program, &mut input, &mut output).unwrap();
+
+    assert_eq!(str::from_utf8(&output).unwrap(), "H\n");
+}
+
+#[test]
+fn test_head() {
+    let program = load_program("head");
+    let input = "hi\nmy\nname\nis\nian\nand\nthis\nis\na\nsuper\nodd\nmethod\nchain"
+        .to_owned()
+        .into_bytes()
+        .into_boxed_slice();
+    let mut output = Vec::new();
+    libheadugh::execute(&program, &mut input.as_ref(), &mut output).unwrap();
+
+    assert_eq!(
+        str::from_utf8(&output).unwrap(),
+        "hi\nmy\nname\nis\nian\nand\nthis\nis\na\nsuper\n"
+    );
+}
+
+#[test]
+fn test_qsort() {
+    let program = load_program("qsort");
+    let input = "9874563210".to_owned().into_bytes().into_boxed_slice();
+    let mut output = Vec::new();
+    libheadugh::execute(&program, &mut input.as_ref(), &mut output).unwrap();
+
+    assert_eq!(str::from_utf8(&output).unwrap(), "0123456789");
+}
+
+#[test]
+fn test_wc() {
+    let program = load_program("wc");
+    // word count itself!
+    let mut input = File::open(filename_for("wc")).unwrap();
+    let mut output = Vec::new();
+    libheadugh::execute(&program, &mut input, &mut output).unwrap();
+
+    assert_eq!(str::from_utf8(&output).unwrap(), "\t14\t23\t533\n");
 }
