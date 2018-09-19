@@ -41,3 +41,13 @@ fn test_wikipedia_hello_world() {
 
     assert_eq!(str::from_utf8(&output).unwrap(), "Hello World!\n");
 }
+
+#[test]
+fn test_rot13_io() {
+    let program = load_program("rot13");
+    let input = "~mlk zyx".to_owned().into_bytes().into_boxed_slice();
+    let mut output = Vec::new();
+    libheadugh::execute(&program, &mut input.as_ref(), &mut output).unwrap();
+
+    assert_eq!(str::from_utf8(&output).unwrap(), "~zyx mlk");
+}
