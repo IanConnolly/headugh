@@ -1,5 +1,7 @@
 [ Via https://en.wikipedia.org/wiki/Brainfuck#Hello_World!
 
+  CC-BY-SA http://creativecommons.org/licenses/by-sa/3.0/
+
   This program prints "Hello World!" and a newline to the screen, its
   length is 106 active command characters. [It is not the shortest.]
 
