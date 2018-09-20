@@ -1,5 +1,4 @@
 use instruction::Instruction;
-use parser::InstructionList;
 use std::fmt;
 use std::io::ErrorKind;
 use std::io::{Read, Write};
@@ -8,7 +7,7 @@ const MEM_SIZE: usize = 256;
 const BUFFER_SIZE: usize = 256;
 
 pub struct Interpreter<'a> {
-    instructions: InstructionList,
+    instructions: Vec<Instruction>,
     pc: usize,
     ap: isize,     // logical address pointer, will have negatives
     max_ap: isize, // actual max address pointer reached, can compare
@@ -34,7 +33,7 @@ impl<'a> fmt::Debug for Interpreter<'a> {
 
 impl<'a> Interpreter<'a> {
     pub fn new(
-        ins: InstructionList,
+        ins: Vec<Instruction>,
         input: &'a mut Read,
         output: &'a mut Write,
     ) -> Interpreter<'a> {
