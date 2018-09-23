@@ -1,10 +1,12 @@
 use instruction::Instruction;
+use interpreter_config::*;
 use std::fmt;
 use std::io::ErrorKind;
 use std::io::{Read, Write};
 
 const MEM_SIZE: usize = 256;
 const BUFFER_SIZE: usize = 256;
+const MAX_VALUE: u8 = 255;
 
 pub struct Interpreter<'a> {
     instructions: Vec<Instruction>,
@@ -15,6 +17,7 @@ pub struct Interpreter<'a> {
     input: &'a mut Read,
     output: &'a mut Write,
     output_buffer: Vec<u8>,
+    config: InterpreterConfig,
 }
 
 impl<'a> fmt::Debug for Interpreter<'a> {
@@ -36,6 +39,7 @@ impl<'a> Interpreter<'a> {
         ins: Vec<Instruction>,
         input: &'a mut Read,
         output: &'a mut Write,
+        config: InterpreterConfig,
     ) -> Interpreter<'a> {
         Interpreter {
             pc: 0,
@@ -46,6 +50,7 @@ impl<'a> Interpreter<'a> {
             input: input,
             output: output,
             output_buffer: Vec::with_capacity(BUFFER_SIZE),
+            config: config,
         }
     }
 
@@ -84,11 +89,33 @@ impl<'a> Interpreter<'a> {
         ()
     }
 
-    fn read_one(&mut self) -> u8 {
+    fn read_one(&mut self) -> Option<u8> {
         let mut buf = [0u8; 1];
         let read_byte = match self.input.read(&mut buf) {
-            Err(ref e) if e.kind() == ErrorKind::UnexpectedEof => Ok(0),
-            Ok(_) => Ok(buf[0]),
+            Err(ref e) if e.kind() == ErrorKind::UnexpectedEof => match self.config.eof {
+                EOFBehaviour::Zero => Ok(Some(0)),
+                EOFBehaviour::MaxValue => Ok(Some(MAX_VALUE)),
+                EOFBehaviour::Unchanged => Ok(None),
+            },
+
+            // If the return value of this method is Ok(n), then it must be guaranteed that 0 <= n
+            // <= buf.len(). A nonzero n value indicates that the buffer buf has been filled in
+            // with n bytes of data from this source. If n is 0, then it can indicate one of two
+            // scenarios:
+            //
+            // 1) This reader has reached its "end of file" and will likely no longer be
+            // able to produce bytes. Note that this does not mean that the reader will always no
+            // longer be able to produce bytes.
+            //
+            // 2) The buffer specified was 0 bytes in length.
+            // https://doc.rust-lang.org/std/io/trait.Read.html#tymethod.read
+            // (our buffer is definitely > 0)
+            Ok(0) => match self.config.eof {
+                EOFBehaviour::Zero => Ok(Some(0)),
+                EOFBehaviour::MaxValue => Ok(Some(MAX_VALUE)),
+                EOFBehaviour::Unchanged => Ok(None),
+            },
+            Ok(_) => Ok(Some(buf[0])),
             Err(e) => Err(e),
         };
         read_byte.unwrap()
@@ -131,7 +158,9 @@ impl<'a> Interpreter<'a> {
                 Instruction::Read => {
                     let address = self.concrete_address()?;
                     let read = self.read_one();
-                    self.memory[address] = read;
+                    if let Some(a) = read {
+                        self.memory[address] = a
+                    };
                     self.pc += 1;
                 }
                 Instruction::JumpIfZero => {
